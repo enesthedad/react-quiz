@@ -7,6 +7,7 @@ import QuestionCard from "./components/QuestionCard";
 import ErrorCard from "./components/ErrorCard";
 const initialState = {
   questions: [],
+  currentQuestion: null,
   error: null,
   status: "loading",
 };
@@ -28,6 +29,12 @@ function questionReducer(state, action) {
       return {
         ...state,
         status: "ready",
+        currentQuestion: 0,
+      };
+    case "nextQuestion":
+      return {
+        ...state,
+        currentQuestion: state.currentQuestion + 1,
       };
     default:
       throw new Error("Action unknown");
@@ -35,10 +42,10 @@ function questionReducer(state, action) {
 }
 function App() {
   const [state, dispatch] = useReducer(questionReducer, initialState);
-  const { questions, error, status } = { ...state };
+  const { questions, error, currentQuestion, status } = { ...state };
   useEffect(() => {
     const fetchQuestions = async () => {
-      const res = await fetch("http://localhost:8000/quesions");
+      const res = await fetch("http://localhost:8000/questions");
       try {
         const data = await res.json();
         dispatch({ type: "dataReceived", payload: data });
@@ -58,7 +65,13 @@ function App() {
           {status === "waiting" && (
             <StartScreen questions={questions} dispatch={dispatch} />
           )}
-          {status === "ready" && <QuestionCard />}
+          {status === "ready" && (
+            <QuestionCard
+              dispatch={dispatch}
+              currentQuestion={currentQuestion}
+              question={questions}
+            />
+          )}
           {status === "error" && <ErrorCard />}
         </Main>
       </div>
